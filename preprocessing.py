@@ -1,4 +1,5 @@
 import jk_php_tokenizer
+import os
 import subprocess
 def read_php_code_from_file(file_path: str) -> str:
     result = ''
@@ -30,11 +31,39 @@ def tokenize(code: str) -> list:
             result.append(token.strip())
     return result
     
+def findAllFilesWithSpecifiedSuffix(target_dir, target_suffix="php"):
+    find_res = []
+    target_suffix_dot = "." + target_suffix
+    walk_generator = os.walk(target_dir)
+    for root_path, dirs, files in walk_generator:
+        if len(files) < 1:
+            continue
+        for file in files:
+            file_name, suffix_name = os.path.splitext(file)
+            if suffix_name == target_suffix_dot:
+                find_res.append(os.path.join(root_path, file))
+    return find_res
 
-def build_dict(tokens: list[str]) -> dict:
+def build_dict() -> dict:
     result = {}
-    tokens = list(set(tokens))
-    tokens.sort()
+    tokens = set()
+    safe_php_paths = findAllFilesWithSpecifiedSuffix('./safe', 'php')
+    cnt = 1
+    for path in safe_php_paths:
+        if(0 == cnt % 100):
+            print(f'building dictionary for the %d-th php file' % cnt)
+        cnt += 1
+        for token in tokenize(read_php_code_from_file(path)):
+            tokens.add(token)
+
+    unsafe_php_paths = findAllFilesWithSpecifiedSuffix('./unsafe', 'php')
+    cnt = 1
+    for path in safe_php_paths:
+        if(0 == cnt % 100):
+            print(f'building dictionary for the %d-th php file' % cnt)
+        cnt += 1
+        for token in tokenize(read_php_code_from_file(path)):
+            tokens.add(token)
     for token in tokens:
         result.update({token: len(result)})
     return result
