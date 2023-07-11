@@ -27,8 +27,8 @@ def tokenize(code: str) -> list:
     tokens = returned.split(',')
     result = []
     for token in tokens:
-        if '\n' != token and ' ' != token:
-            result.append(token.strip())
+        if '\n' != token and ' ' != token and '' != token.strip():
+            result.append(str(token.strip()))
     return result
     
 def findAllFilesWithSpecifiedSuffix(target_dir, target_suffix="php"):
@@ -70,6 +70,7 @@ def build_dict() -> dict:
             tokens.add(token)
     for token in tokens:
         result.update({token: len(result)})
+    result.update({'<pad>': len(result)})
     json_str = json.dumps(result)
     with open('dict.json', 'w') as f:
         f.write(json_str)
