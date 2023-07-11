@@ -1,6 +1,6 @@
-import jk_php_tokenizer
 import os
 import subprocess
+import json
 def read_php_code_from_file(file_path: str) -> str:
     result = ''
     with open(file_path, 'r') as f:
@@ -46,6 +46,10 @@ def findAllFilesWithSpecifiedSuffix(target_dir, target_suffix="php"):
 
 def build_dict() -> dict:
     result = {}
+    if os.path.isfile('dict.json'):
+        with open('dict.json', 'r') as f:
+            result = json.loads(f.read())
+        return result
     tokens = set()
     safe_php_paths = findAllFilesWithSpecifiedSuffix('./safe', 'php')
     cnt = 1
@@ -66,4 +70,7 @@ def build_dict() -> dict:
             tokens.add(token)
     for token in tokens:
         result.update({token: len(result)})
+    json_str = json.dumps(result)
+    with open('dict.json', 'w') as f:
+        f.write(json_str)
     return result
