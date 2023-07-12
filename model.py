@@ -44,6 +44,7 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
     
     for epoch in range(num_epoch):
         acc = 0
+        loss = 0
         for x, y in datas:
             x = x.to(device)
             pred = model(x)
@@ -52,10 +53,10 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
             if pred[0][1].item() > pred[0][0].item() and 1 == y:
                 acc += 1
             ty = torch.LongTensor([y]).to(device)
-            loss = criterion(pred, ty)
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+            loss += criterion(pred, ty)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
         print(f'epoch =  %d, acc = %f' % (epoch + 1, acc / len(datas)))
         torch.save(model.state_dict(), 'checkpoint.ckp')
         print(f'checkpoint %d / %d written' %(epoch + 1, num_epoch))
