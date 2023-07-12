@@ -52,7 +52,6 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        print(f'epoch =  %d, acc = %f' % (epoch + 1, acc / len(datas)))
         torch.save(model.state_dict(), 'checkpoint.ckp')
         print(f'checkpoint %d / %d written' %(epoch + 1, num_epoch))
         with torch.no_grad():
