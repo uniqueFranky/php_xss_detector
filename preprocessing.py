@@ -62,7 +62,7 @@ def build_dict() -> dict:
 
     unsafe_php_paths = findAllFilesWithSpecifiedSuffix('./unsafe', 'php')
     cnt = 1
-    for path in safe_php_paths:
+    for path in unsafe_php_paths:
         if(0 == cnt % 100):
             print(f'building dictionary for the %d-th php file' % cnt)
         cnt += 1
