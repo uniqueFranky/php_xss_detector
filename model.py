@@ -43,7 +43,6 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
     datas = dataset.CodeDataSet()
     
     for epoch in range(num_epoch):
-        acc = 0
         for x, y in datas:
             x = x.to(device)
             pred = model(x)
@@ -63,5 +62,5 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
                     acc += 1
                 if pred[0][1].item() > pred[0][0].item() and 1 == y:
                     acc += 1
-            print(f'accuracy rate = %f' % acc / len(datas))
+            print('accuracy rate =', acc / len(datas))
         
