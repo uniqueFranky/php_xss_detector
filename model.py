@@ -32,7 +32,7 @@ class Model(nn.Module):
         x = self.linear3(x)
         x = torch.tanh(x)
         x = self.linear4(x)
-        x = torch.sigmoid(x)
+        x = torch.tanh(x)
         return x
         
 
