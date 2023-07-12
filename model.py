@@ -47,10 +47,6 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
         for x, y in datas:
             x = x.to(device)
             pred = model(x)
-            if pred[0][0].item() > pred[0][1].item() and 0 == y:
-                acc += 1
-            if pred[0][1].item() > pred[0][0].item() and 1 == y:
-                acc += 1
             ty = torch.LongTensor([y]).to(device)
             loss = criterion(pred, ty)
             optimizer.zero_grad()
@@ -59,4 +55,14 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
         print(f'epoch =  %d, acc = %f' % (epoch + 1, acc / len(datas)))
         torch.save(model.state_dict(), 'checkpoint.ckp')
         print(f'checkpoint %d / %d written' %(epoch + 1, num_epoch))
+        with torch.no_grad():
+            acc = 0
+            for x, y in datas:
+                x = x.to(device)
+                pred = model(x)
+                if pred[0][0].item() > pred[0][1].item() and 0 == y:
+                    acc += 1
+                if pred[0][1].item() > pred[0][0].item() and 1 == y:
+                    acc += 1
+            print(f'accuracy rate = %f' % acc / len(datas))
         
