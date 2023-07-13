@@ -26,11 +26,11 @@ class Model(nn.Module):
         x, _ = self.rnn(x)
         x = x[:, -1, :]
         x = self.linear1(x)
-        x = torch.tanh(x)
+        x = torch.sigmoid(x)
         x = self.linear2(x)
-        x = torch.relu(x)
-        x = self.linear3(x)
         x = torch.tanh(x)
+        x = self.linear3(x)
+        x = torch.sigmoid(x)
         x = self.linear4(x)
         x = torch.tanh(x)
         return x
@@ -52,6 +52,7 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
         for x, y in loader:
             x = x.to(device)
             y = y.to(device)
+            print(y)
             pred = model(x)
             loss = criterion(pred, y)
             optimizer.zero_grad()
