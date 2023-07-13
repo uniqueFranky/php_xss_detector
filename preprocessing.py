@@ -71,6 +71,7 @@ def build_dict() -> dict:
     for token in tokens:
         result.update({token: len(result)})
     result.update({'<pad>': len(result)})
+    result.update({'<unk>': len(result)})
     json_str = json.dumps(result)
     with open('dict.json', 'w') as f:
         f.write(json_str)

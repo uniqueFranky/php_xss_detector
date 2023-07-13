@@ -72,7 +72,18 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
                     acc += 1
                 if pred[0][1].item() > pred[0][0].item() and 1 == y:
                     acc += 1
-            print('accuracy rate =', acc / len(test_datas))
+            print('on test datas: accuracy rate =', acc / len(test_datas))
+        with torch.no_grad():
+            acc = 0
+            for x, y in train_datas:
+                x = torch.IntTensor(x).to(device)
+                x = x.unsqueeze(0)
+                pred = model(x)
+                if pred[0][0].item() > pred[0][1].item() and 0 == y:
+                    acc += 1
+                if pred[0][1].item() > pred[0][0].item() and 1 == y:
+                    acc += 1
+            print('on train datas: accuracy rate =', acc / len(test_datas))
         
 
 def collate_fn(batch):
