@@ -14,15 +14,28 @@ leaf_tag = ["name", "value", "items"]
 mid_tag = ["expr", "var", "left", "right", "dim"]
 cannot_sure_tag = [] # cannot sure about its usage
 list_tag = ["exprs"]
-
 class Type(Enum):
     LEAF = 1
     NODE = 2
     ROOT = 3
 
-def buildAstTree(dict):
+
+def buildAstTree(dict: dict, parent: dict): 
+    """
+    given the json data(stored in dictionary), build the AST
+    Test the code with:
+        ast_tree = {}
+        ast_tree["type"], ast_tree["nodeName"], ast_tree["children"] = Type.ROOT, "CodeStart", []
+        filepath = "ast.json"
+        dict = loadJson(filepath)
+        for code_line in dict:
+            ast_tree["children"].append(buildAstTree(code_line, ast_tree))
+        print("The Ast tree generated is as folloed:\n")
+        traverse_and_print(ast_tree, 0)
+    """
     ast_tree = {}
     ast_tree["children"] = []
+    ast_tree["parent"] = parent
     for key, value in dict.items():
         if key == "nodeType":
             ast_tree["nodeName"] = value
@@ -41,24 +54,22 @@ def buildAstTree(dict):
             ast_tree["type"] = Type.NODE
             # Note: the behavior of None is worth paying attention to
             if value == None and key == "dim":
-                ast_tree["children"].append({"type": Type.LEAF, "nodeName": "Array_Dim", "children": ["Array_NextIdx"]})
+                ast_tree["children"].append({"type": Type.LEAF, "nodeName": "Array_Dim", "children": ["Array_NextIdx"], "parent": ast_tree})
             else:
-                ast_tree["children"].append(buildAstTree(value))
+                ast_tree["children"].append(buildAstTree(value, ast_tree))
         elif key in list_tag:
             ast_tree["type"] = Type.NODE
             for param in value:
-                ast_tree["children"].append(buildAstTree(param))
+                ast_tree["children"].append(buildAstTree(param, ast_tree))
         else:
             print(f"Unknown tag: {key}")
             assert(False)
 
     return ast_tree
+ 
 
-def print_tree(root):
-    print("The Ast tree generated is as folloed:\n")
-    traverse_and_print(root, 0)    
-
-def traverse_and_print(tree, indent):
+# traverse the AST Tree and print it out
+def traverse_and_print(tree: dict, indent: int):
     for _ in range(indent):
         print(" ", end="")
     if tree["type"] == Type.LEAF:
@@ -68,10 +79,77 @@ def traverse_and_print(tree, indent):
         for child in tree["children"]:
             traverse_and_print(child, indent + 1)
 
+
+# traverse the AST Tree and annotate the depth of every leaf
+def traverse_and_annotate(tree: dict, depth: int):
+    if "depth" in tree:
+        print("Oops, the tree already has a 'depth' tag")
+        assert(False)
+
+    if tree["type"] == Type.LEAF:
+        tree["depth"] = depth
+    else:
+        for child in tree["children"]:
+            traverse_and_annotate(child, depth + 1)
+
+
+def traverse_and_storeleaves(tree: dict, leaves_list: list):
+    if tree["type"] == Type.LEAF:
+        leaves_list.append(tree)
+    else:
+        for child in tree["children"]:
+            traverse_and_storeleaves(child, leaves_list)
+
+
+def bruteforce_search_path(leaves_list: list):
+    for i in range(len(leaves_list)):
+        for j in range(i + 1, len(leaves_list)):
+            print_the_path(leaves_list[i], leaves_list[j])
+
+
+def print_the_path(oneLeave: dict, theOtherLeave: dict):
+    print(oneLeave["children"][0], end="")
+    childright = theOtherLeave["children"][0]
+
+    one_node_path = theOther_node_path = []
+    if oneLeave["depth"] > theOtherLeave["depth"]:
+        diff = oneLeave["depth"] - theOtherLeave["depth"]
+        for _ in range(diff):
+            one_node_path.append(oneLeave["nodeName"])
+            oneLeave = oneLeave["parent"]
+    elif oneLeave["depth"] < theOtherLeave["depth"]:
+        diff = theOtherLeave["depth"] - oneLeave["depth"]
+        for _ in range(diff):
+            theOther_node_path.insert(0, theOtherLeave["nodeName"])
+            theOtherLeave = theOtherLeave["parent"]
+   
+    # FIX equal issue
+    while oneLeave is not theOtherLeave:
+        one_node_path.append(oneLeave["nodeName"])
+        oneLeave = oneLeave["parent"]
+        theOther_node_path.insert(0, theOtherLeave["nodeName"])
+        theOtherLeave = theOtherLeave["parent"]
+        if oneLeave is theOtherLeave:
+            break
+    
+    print(",", end="")
+    for node in one_node_path:
+        print(f"{node},", end="")
+    for node in theOther_node_path:
+        print(f"{node},", end="")
+    print(childright)
+
+
+
 ast_tree = {}
 ast_tree["type"], ast_tree["nodeName"], ast_tree["children"] = Type.ROOT, "CodeStart", []
 filepath = "ast.json"
 dict = loadJson(filepath)
 for code_line in dict:
-    ast_tree["children"].append(buildAstTree(code_line))
-print_tree(ast_tree)
+    ast_tree["children"].append(buildAstTree(code_line, ast_tree))
+traverse_and_annotate(ast_tree, 0)
+# traverse_and_print(ast_tree, 0)
+
+leaves_list = []
+traverse_and_storeleaves(ast_tree, leaves_list)
+bruteforce_search_path(leaves_list)
