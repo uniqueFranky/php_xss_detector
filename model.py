@@ -41,9 +41,10 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
     criterion = nn.CrossEntropyLoss().to(device)
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)
     datas = dataset.CodeDataSet()
-    
+    train_datas = datas[: int(0.9 * len(datas))]
+    test_datas = datas[int(0.9 * len(datas)): ]
     for epoch in range(num_epoch):
-        for x, y in datas:
+        for x, y in train_datas:
             x = x.to(device)
             pred = model(x)
             ty = torch.LongTensor([y]).to(device)
@@ -55,7 +56,7 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
         print(f'checkpoint %d / %d written' %(epoch + 1, num_epoch))
         with torch.no_grad():
             acc = 0
-            for x, y in datas:
+            for x, y in test_datas:
                 x = x.to(device)
                 pred = model(x)
                 if pred[0][0].item() > pred[0][1].item() and 0 == y:
