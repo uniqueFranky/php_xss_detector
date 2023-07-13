@@ -54,13 +54,13 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
             y = y.to(device)
             pred = model(x)
             loss = criterion(pred, y)
-            loss.backward()
-            optimizer.step()
             optimizer.zero_grad()
+            loss.backward()
+            print(model.linear1.weight.grad)
+            optimizer.step()
 
         torch.save(model.state_dict(), 'checkpoint.ckp')
         print(f'checkpoint %d / %d written' %(epoch + 1, num_epoch))
-        print(model.linear1.weight.grad)
         with torch.no_grad():
             acc = 0
             for x, y in test_datas:
