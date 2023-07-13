@@ -15,7 +15,7 @@ class Model(nn.Module):
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         self.embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=embedding_size, padding_idx=vocab['<pad>']).to(device)
-        self.rnn = nn.RNN(input_size=embedding_size, hidden_size=hidden_size, num_layers=num_layers, batch_first=True).to(device)
+        self.rnn = nn.LSTM(input_size=embedding_size, hidden_size=hidden_size, num_layers=num_layers, batch_first=True).to(device)
         self.linear1 = nn.Linear(hidden_size, output_size).to(device)
         # self.linear2 = nn.Linear(hidden_size * 2, hidden_size * 3).to(device)
         # self.linear3 = nn.Linear(hidden_size * 3, hidden_size * 2).to(device)
@@ -56,6 +56,7 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
             loss = criterion(pred, y)
             optimizer.zero_grad()
             loss.backward()
+            # print(model.linear1.weight.grad)
             optimizer.step()
 
         torch.save(model.state_dict(), 'checkpoint.ckp')
