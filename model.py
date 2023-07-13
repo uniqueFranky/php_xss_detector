@@ -51,6 +51,7 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
     for epoch in range(num_epoch):
         for x, y in loader:
             x = x.to(device)
+            y = y.to(device)
             pred = model(x)
             loss = criterion(pred, y)
             optimizer.zero_grad()
