@@ -20,6 +20,11 @@ class Model(nn.Module):
         # self.linear2 = nn.Linear(hidden_size * 2, hidden_size * 3).to(device)
         # self.linear3 = nn.Linear(hidden_size * 3, hidden_size * 2).to(device)
         # self.linear4 = nn.Linear(hidden_size * 2, output_size).to(device)
+        torch.nn.init.xavier_uniform(self.linear1.weight)
+        torch.nn.init.xavier_uniform(self.embedding.weight)
+
+
+
 
     def forward(self, x):
         x = self.embedding(x)
@@ -47,7 +52,7 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
         train_datas.append(datas[i])
     for i in range(int(0.9 * len(datas) + 1), len(datas)):
         test_datas.append(datas[i])
-    loader = torch.utils.data.DataLoader(train_datas, batch_size=1, collate_fn=collate_fn)
+    loader = torch.utils.data.DataLoader(train_datas, batch_size=16, collate_fn=collate_fn)
     for epoch in range(num_epoch):
         for x, y in loader:
             x = x.to(device)
