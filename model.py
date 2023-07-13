@@ -56,7 +56,7 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
             loss = criterion(pred, y)
             optimizer.zero_grad()
             loss.backward()
-            # print(model.linear1.weight.grad)
+            print(model.linear1.weight.grad)
             optimizer.step()
 
         torch.save(model.state_dict(), 'checkpoint.ckp')
