@@ -24,7 +24,7 @@ def convert_to_ascii(sentence):
     for i in sentence:
         # print(ord(i))
 
-        """Some characters have values very big e.d 8221 adn some are chinese letters
+        """Some characters have values very big e.d 8221 and some are chinese letters
         I am removing letters having values greater than 8222 and for rest greater 
         than 128 and smaller than 8222 assigning them values so they can easily be normalized"""
 
