@@ -41,8 +41,12 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
     criterion = nn.CrossEntropyLoss().to(device)
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)
     datas = dataset.CodeDataSet()
-    train_datas = datas[: int(0.9 * len(datas))]
-    test_datas = datas[int(0.9 * len(datas)): ]
+    train_datas = []
+    test_datas = []
+    for i in range(int(0.9 * len(datas))):
+        train_datas.append(datas[i])
+    for i in range(int(0.9 * len(datas) + 1), len(datas)):
+        test_datas.append(datas[i])
     for epoch in range(num_epoch):
         for x, y in train_datas:
             x = x.to(device)
