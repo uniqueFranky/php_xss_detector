@@ -65,7 +65,7 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
                 # f.write(str(model.linear1.weight.grad))
             optimizer.step()
 
-        torch.save(model.state_dict(), 'checkpoint.ckp')
+        torch.save(model.state_dict(), 'checkpoint#' + epoch + '.ckp')
         print(f'checkpoint %d / %d written' %(epoch + 1, num_epoch))
         with torch.no_grad():
             acc = 0
