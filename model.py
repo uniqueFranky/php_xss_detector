@@ -39,7 +39,7 @@ class Model(nn.Module):
 def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_epoch, lr):
     model = Model(vocab_size, embedding_size, hidden_size, num_layers, output_size).to(device)
     criterion = nn.CrossEntropyLoss().to(device)
-    optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, momentum=0.9)
     datas = dataset.CodeDataSet()
     train_datas = []
     test_datas = []
