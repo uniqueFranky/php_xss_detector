@@ -20,8 +20,8 @@ class Model(nn.Module):
         self.linear2 = nn.Linear(hidden_size * 2, hidden_size * 3).to(device)
         self.linear3 = nn.Linear(hidden_size * 3, hidden_size * 2).to(device)
         self.linear4 = nn.Linear(hidden_size * 2, output_size).to(device)
-        torch.nn.init.xavier_uniform(self.linear1.weight)
-        torch.nn.init.xavier_uniform(self.embedding.weight)
+        torch.nn.init.xavier_uniform_(self.linear1.weight)
+        torch.nn.init.xavier_uniform_(self.embedding.weight)
 
 
 
