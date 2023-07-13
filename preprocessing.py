@@ -51,7 +51,7 @@ def build_dict() -> dict:
             result = json.loads(f.read())
         return result
     tokens = set()
-    safe_php_paths = findAllFilesWithSpecifiedSuffix('./safe', 'php')
+    safe_php_paths = findAllFilesWithSpecifiedSuffix('./dataset/train_datas/safe', 'php')
     cnt = 1
     for path in safe_php_paths:
         if(0 == cnt % 100):
@@ -60,7 +60,7 @@ def build_dict() -> dict:
         for token in tokenize(read_php_code_from_file(path)):
             tokens.add(token)
 
-    unsafe_php_paths = findAllFilesWithSpecifiedSuffix('./unsafe', 'php')
+    unsafe_php_paths = findAllFilesWithSpecifiedSuffix('./dataset/train_datas/unsafe', 'php')
     cnt = 1
     for path in unsafe_php_paths:
         if(0 == cnt % 100):

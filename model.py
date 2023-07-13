@@ -45,13 +45,8 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
     model = Model(vocab_size, embedding_size, hidden_size, num_layers, output_size).to(device)
     criterion = nn.CrossEntropyLoss().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    datas = dataset.CodeDataSet()
-    train_datas = []
-    test_datas = []
-    for i in range(int(0.9 * len(datas))):
-        train_datas.append(datas[i])
-    for i in range(int(0.9 * len(datas) + 1), len(datas)):
-        test_datas.append(datas[i])
+    train_datas = dataset.CodeDataSet('./dataset/train_datas', prefix='train_')
+    test_datas = dataset.CodeDataSet('./dataset/test_datas', prefix='test_')
     loader = torch.utils.data.DataLoader(train_datas, batch_size=16, collate_fn=collate_fn)
     for epoch in range(num_epoch):
         for x, y in loader:
