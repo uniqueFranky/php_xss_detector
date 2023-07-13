@@ -1,7 +1,7 @@
 from torch import nn
 import torch
 import dataset
-import random
+import os
 import preprocessing
 
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
@@ -42,6 +42,7 @@ class Model(nn.Module):
         
 
 def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_epoch, lr):
+    os.system('rm result.txt')
     model = Model(vocab_size, embedding_size, hidden_size, num_layers, output_size).to(device)
     criterion = nn.CrossEntropyLoss().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -72,7 +73,8 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
                     acc += 1
                 if pred[0][1].item() > pred[0][0].item() and 1 == y:
                     acc += 1
-            print('on test datas: accuracy rate =', acc / len(test_datas))
+            with open('result.txt', 'a') as f:
+                f.write('on test datas: accuracy rate = ' + str(acc / len(test_datas)))
         with torch.no_grad():
             acc = 0
             for x, y in train_datas:
@@ -83,7 +85,8 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
                     acc += 1
                 if pred[0][1].item() > pred[0][0].item() and 1 == y:
                     acc += 1
-            print('on train datas: accuracy rate =', acc / len(train_datas))
+            with open('result.txt', 'a') as f:
+                f.write('on train datas: accuracy rate = ' + str(acc / len(train_datas)))
         
 
 def collate_fn(batch):
