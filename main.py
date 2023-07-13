@@ -7,4 +7,4 @@ import json
 # parser = subprocess.run(['php', 'parser.php', code], check=True, stdout=subprocess.PIPE)
 # ast_json = parser.stdout.decode()
 # ast = json.loads(ast_json)
-model.train(vocab_size=168, embedding_size=30, hidden_size=50, num_layers=3, output_size=2, num_epoch=200, lr=0.0001)
+model.train(vocab_size=168, embedding_size=30, hidden_size=50, num_layers=3, output_size=2, num_epoch=200, lr=0.00001)

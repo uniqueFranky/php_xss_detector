@@ -16,10 +16,10 @@ class Model(nn.Module):
         self.hidden_size = hidden_size
         self.embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=embedding_size, padding_idx=vocab['<pad>']).to(device)
         self.rnn = nn.LSTM(input_size=embedding_size, hidden_size=hidden_size, num_layers=num_layers, batch_first=True).to(device)
-        self.linear1 = nn.Linear(hidden_size, output_size).to(device)
-        # self.linear2 = nn.Linear(hidden_size * 2, hidden_size * 3).to(device)
-        # self.linear3 = nn.Linear(hidden_size * 3, hidden_size * 2).to(device)
-        # self.linear4 = nn.Linear(hidden_size * 2, output_size).to(device)
+        self.linear1 = nn.Linear(hidden_size, hidden_size * 2).to(device)
+        self.linear2 = nn.Linear(hidden_size * 2, hidden_size * 3).to(device)
+        self.linear3 = nn.Linear(hidden_size * 3, hidden_size * 2).to(device)
+        self.linear4 = nn.Linear(hidden_size * 2, output_size).to(device)
         torch.nn.init.xavier_uniform(self.linear1.weight)
         torch.nn.init.xavier_uniform(self.embedding.weight)
 
@@ -31,12 +31,12 @@ class Model(nn.Module):
         x, _ = self.rnn(x)
         x = x[:, -1, :]
         x = self.linear1(x)
-        # x = torch.relu(x)
-        # x = self.linear2(x)
-        # x = torch.relu(x)
-        # x = self.linear3(x)
-        # x = torch.relu(x)
-        # x = self.linear4(x)
+        x = torch.relu(x)
+        x = self.linear2(x)
+        x = torch.relu(x)
+        x = self.linear3(x)
+        x = torch.relu(x)
+        x = self.linear4(x)
         x = torch.tanh(x)
         return x
         
