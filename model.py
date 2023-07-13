@@ -62,7 +62,7 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
         with torch.no_grad():
             acc = 0
             for x, y in test_datas:
-                x = x.to(device)
+                x = torch.IntTensor(x).to(device)
                 pred = model(x)
                 if pred[0][0].item() > pred[0][1].item() and 0 == y:
                     acc += 1
