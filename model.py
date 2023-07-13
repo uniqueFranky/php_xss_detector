@@ -47,7 +47,7 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
         train_datas.append(datas[i])
     for i in range(int(0.9 * len(datas) + 1), len(datas)):
         test_datas.append(datas[i])
-    loader = torch.utils.data.DataLoader(train_datas, batch_size=64, collate_fn=collate_fn)
+    loader = torch.utils.data.DataLoader(train_datas, batch_size=16, collate_fn=collate_fn)
     for epoch in range(num_epoch):
         for x, y in loader:
             x = x.to(device)
