@@ -9,7 +9,7 @@ def split_datas():
         path = safe_paths[i]
         os.system('mv ' + path + ' ./dataset/test_datas/safe')
     
-    unsafe_paths = preprocessing.findAllFilesWithSpecifiedSuffix('./safe', 'php')
+    unsafe_paths = preprocessing.findAllFilesWithSpecifiedSuffix('./unsafe', 'php')
     random.shuffle(unsafe_paths)
     for i in range(int(len(unsafe_paths) / 10)):
         path = unsafe_paths[i]
