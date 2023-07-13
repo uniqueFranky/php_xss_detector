@@ -74,7 +74,7 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
                 if pred[0][1].item() > pred[0][0].item() and 1 == y:
                     acc += 1
             with open('result.txt', 'a') as f:
-                f.write('on test datas: accuracy rate = ' + str(acc / len(test_datas)))
+                f.write('on test datas: accuracy rate = ' + str(acc / len(test_datas)) + '\n')
         with torch.no_grad():
             acc = 0
             for x, y in train_datas:
@@ -86,7 +86,7 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
                 if pred[0][1].item() > pred[0][0].item() and 1 == y:
                     acc += 1
             with open('result.txt', 'a') as f:
-                f.write('on train datas: accuracy rate = ' + str(acc / len(train_datas)))
+                f.write('on train datas: accuracy rate = ' + str(acc / len(train_datas)) + '\n')
         
 
 def collate_fn(batch):
