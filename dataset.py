@@ -42,4 +42,4 @@ class CodeDataSet(torch.utils.data.Dataset):
         return len(self.safe_paths) + len(self.unsafe_paths)
     
     def __getitem__(self, idx):
-        return (torch.IntTensor(self.features[idx]), self.labels[idx])
+        return (self.features[idx], self.labels[idx])

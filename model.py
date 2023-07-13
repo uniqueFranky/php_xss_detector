@@ -7,11 +7,11 @@ import preprocessing
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 print('running on ', device)
 device = torch.device(device)
+vocab = preprocessing.build_dict()
 
 class Model(nn.Module):
     def __init__(self, vocab_size, embedding_size, hidden_size, num_layers, output_size):
         super().__init__()
-        vocab = preprocessing.build_dict()
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         self.embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=embedding_size, padding_idx=vocab['<pad>']).to(device)
@@ -24,7 +24,7 @@ class Model(nn.Module):
     def forward(self, x):
         x = self.embedding(x)
         x, _ = self.rnn(x)
-        x = x[-1:, :]
+        x = x[:, -1, :]
         x = self.linear1(x)
         x = torch.tanh(x)
         x = self.linear2(x)
@@ -47,12 +47,12 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
         train_datas.append(datas[i])
     for i in range(int(0.9 * len(datas) + 1), len(datas)):
         test_datas.append(datas[i])
+    loader = torch.utils.data.DataLoader(train_datas, batch_size=64, collate_fn=collate_fn)
     for epoch in range(num_epoch):
-        for x, y in train_datas:
+        for x, y in loader:
             x = x.to(device)
             pred = model(x)
-            ty = torch.LongTensor([y]).to(device)
-            loss = criterion(pred, ty)
+            loss = criterion(pred, y)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -69,3 +69,16 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
                     acc += 1
             print('accuracy rate =', acc / len(test_datas))
         
+
+def collate_fn(batch):
+    max_length = 0
+    for row in batch:
+        max_length = max(max_length, len(row[0]))
+    features = []
+    labels = []
+    for row in batch:
+        features.append(row[0])
+        while len(features[-1]) < max_length:
+            features[-1].append(vocab['<pad>'])
+        labels.append(row[1])
+    return torch.IntTensor(features), torch.LongTensor(labels)
