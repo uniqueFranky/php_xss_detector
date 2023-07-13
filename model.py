@@ -72,6 +72,7 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
                     acc += 1
                 if pred[0][1].item() > pred[0][0].item() and 1 == y:
                     acc += 1
+            print(model.linear1.weight.grad)
             print('on test datas: accuracy rate =', acc / len(test_datas))
         # with torch.no_grad():
         #     acc = 0
