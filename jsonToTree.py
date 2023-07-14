@@ -102,15 +102,17 @@ def traverse_and_storeleaves(tree: dict, leaves_list: list):
 
 # printing out the whole path in the AST Tree
 def bruteforce_search_path(leaves_list: list):
+    result = []
     for i in range(len(leaves_list)):
         for j in range(i + 1, len(leaves_list)):
-            print_the_path(leaves_list[i], leaves_list[j])
+            result.append(get_the_path(leaves_list[i], leaves_list[j]))
+    return result
 
 # given two leaves, find the path between them
-def print_the_path(oneLeave: dict, theOtherLeave: dict):
-    print(oneLeave["children"][0], end="")
+def get_the_path(oneLeave: dict, theOtherLeave: dict):
+    result = ''
+    result += str(oneLeave["children"][0]) + '↑'
     childright = theOtherLeave["children"][0]
-
     one_node_path = []
     theOther_node_path = []
     if oneLeave["depth"] > theOtherLeave["depth"]:
@@ -135,33 +137,30 @@ def print_the_path(oneLeave: dict, theOtherLeave: dict):
     
     one_node_path.append(oneLeave["nodeName"])
 
-    print(",", end="")
     for node in one_node_path:
-        print(f"{node},", end="")
+        result += node + '↑'
     for node in theOther_node_path:
-        print(f"{node},", end="")
-    print(childright)
+        result += node + '↓'
+    result += str(childright)
+    return result
 
+def get_paths_on_tree(ast_json):
+    # 导入 Json 文件 
+    dict = json.loads(ast_json)
+    # 构建 AST Tree
+    ast_tree = {}
+    ast_tree["type"], ast_tree["nodeName"], ast_tree["children"] = Type.ROOT, "CodeStart", []
+    for code_line in dict:
+        ast_tree["children"].append(buildAstTree(code_line, ast_tree))
 
-# 导入 Json 文件 
-filepath = "ast.json"
-dict = loadJson(filepath)
+    # 遍历 AST Tree, 标记所有 leaves 的深度
+    traverse_and_annotate(ast_tree, 0)
 
-# 构建 AST Tree
-ast_tree = {}
-ast_tree["type"], ast_tree["nodeName"], ast_tree["children"] = Type.ROOT, "CodeStart", []
-for code_line in dict:
-    ast_tree["children"].append(buildAstTree(code_line, ast_tree))
+    # 获取 AST Tree 的树叶集
+    leaves_list = []
+    traverse_and_storeleaves(ast_tree, leaves_list)
 
-# 遍历 AST Tree, 标记所有 leaves 的深度
-traverse_and_annotate(ast_tree, 0)
+    # 根据 AST Tree 的树叶集搜索出所有路径
+    paths = bruteforce_search_path(leaves_list)
+    return paths
 
-# 遍历并输出 AST Tree
-# traverse_and_print(ast_tree, 0)
-
-# 获取 AST Tree 的树叶集
-leaves_list = []
-traverse_and_storeleaves(ast_tree, leaves_list)
-
-# 根据 AST Tree 的树叶集搜索出所有路径
-bruteforce_search_path(leaves_list)
