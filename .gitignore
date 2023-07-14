@@ -6,3 +6,4 @@ vendor/*
 composer/*
 composer.*
 *.ckp
+.idea/*
