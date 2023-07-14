@@ -1,6 +1,7 @@
 import os
 import subprocess
 import json
+import jsonToTree
 def read_php_code_from_file(file_path: str) -> str:
     result = ''
     with open(file_path, 'r') as f:
@@ -76,3 +77,76 @@ def build_dict() -> dict:
     with open('dict.json', 'w') as f:
         f.write(json_str)
     return result
+
+def convert_code_to_ast_paths(code: str):
+    parser = subprocess.run(['php', 'parser.php', code], check=True, stdout=subprocess.PIPE)
+    ast_json = parser.stdout.decode()
+    paths = jsonToTree.get_paths_on_tree(ast_json)
+    return paths
+
+def convert_file_paths_to_ast_paths(file_paths):
+    result = []
+    for file_path in file_paths:
+        with open(file_path, 'r') as f:
+            code = f.read()
+            ast_path = convert_code_to_ast_paths(code)
+            result.append(ast_path)
+    return result
+
+def convert_whole_dataset_to_ast_paths(train_path='./dataset/train_datas/', test_path='./dataset/test_datas/'):
+    train_safe_file_paths = findAllFilesWithSpecifiedSuffix(train_path + 'safe/', 'php')
+    train_unsafe_file_paths = findAllFilesWithSpecifiedSuffix(train_path + 'unsafe/', 'php')
+    train_safe_ast_paths = convert_file_paths_to_ast_paths(train_safe_file_paths)
+    train_unsafe_ast_paths = convert_file_paths_to_ast_paths(train_unsafe_file_paths)
+
+    test_safe_file_paths = findAllFilesWithSpecifiedSuffix(test_path + 'safe/', 'php')
+    test_unsafe_file_paths = findAllFilesWithSpecifiedSuffix(test_path + 'unsafe/', 'php')
+    test_safe_ast_paths = convert_file_paths_to_ast_paths(test_safe_file_paths)
+    test_unsafe_ast_paths = convert_file_paths_to_ast_paths(test_unsafe_file_paths)
+
+    return train_safe_ast_paths, train_unsafe_ast_paths, test_safe_ast_paths, test_unsafe_ast_paths
+
+def convert_ast_path_to_terminals_and_path(ast_path: str):
+    st = ast_path.find('↑')
+    ed = ast_path.rfind('↓')
+    left_node = ast_path[: st]
+    right_node = ast_path[ed + 1: ]
+    mid_path = ast_path[st + 1: ed]
+    return left_node, mid_path, right_node
+
+def build_ast_vocab(train_path='./dataset/train_datas/', test_path='./dataset/test_datas/') -> dict:
+    if os.path.isfile('ast_dict.json'):
+        with open('ast_dict.json', 'r') as f:
+            vocab = json.loads(f.read())
+        return vocab
+    
+    train_safe_ast_paths, train_unsafe_ast_paths, test_safe_ast_paths, test_unsafe_ast_paths = \
+        convert_whole_dataset_to_ast_paths(train_path, test_path)
+    
+    tokens = set()
+    for ast_path in train_safe_ast_paths:
+        left_node, mid_path, right_node = convert_ast_path_to_terminals_and_path(ast_path)
+        tokens.add(left_node)
+        tokens.add(right_node)
+        tokens.add(mid_path)
+    for ast_path in train_unsafe_ast_paths:
+        left_node, mid_path, right_node = convert_ast_path_to_terminals_and_path(ast_path)
+        tokens.add(left_node)
+        tokens.add(right_node)
+        tokens.add(mid_path)
+
+    vocab = {}
+    for token in tokens:
+        vocab.update({token: len(vocab)})
+    vocab.update({'<pad>': len(vocab)})
+    vocab.update({'<unk>': len(vocab)})
+
+    with open('ast_dict.json', 'w') as f:
+        vocab_json = json.dumps(vocab)
+        f.write(vocab_json)
+
+    return vocab
+
+
+build_ast_vocab()
+
