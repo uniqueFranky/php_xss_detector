@@ -92,7 +92,7 @@ def traverse_and_annotate(tree: dict, depth: int):
         for child in tree["children"]:
             traverse_and_annotate(child, depth + 1)
 
-
+# collect all the leaves in the AST Tree into the 'leaves_list'
 def traverse_and_storeleaves(tree: dict, leaves_list: list):
     if tree["type"] == Type.LEAF:
         leaves_list.append(tree)
@@ -100,13 +100,13 @@ def traverse_and_storeleaves(tree: dict, leaves_list: list):
         for child in tree["children"]:
             traverse_and_storeleaves(child, leaves_list)
 
-
+# printing out the whole path in the AST Tree
 def bruteforce_search_path(leaves_list: list):
     for i in range(len(leaves_list)):
         for j in range(i + 1, len(leaves_list)):
             print_the_path(leaves_list[i], leaves_list[j])
 
-
+# given two leaves, find the path between them
 def print_the_path(oneLeave: dict, theOtherLeave: dict):
     print(oneLeave["children"][0], end="")
     childright = theOtherLeave["children"][0]
@@ -143,16 +143,25 @@ def print_the_path(oneLeave: dict, theOtherLeave: dict):
     print(childright)
 
 
-
-ast_tree = {}
-ast_tree["type"], ast_tree["nodeName"], ast_tree["children"] = Type.ROOT, "CodeStart", []
+# 导入 Json 文件 
 filepath = "ast.json"
 dict = loadJson(filepath)
+
+# 构建 AST Tree
+ast_tree = {}
+ast_tree["type"], ast_tree["nodeName"], ast_tree["children"] = Type.ROOT, "CodeStart", []
 for code_line in dict:
     ast_tree["children"].append(buildAstTree(code_line, ast_tree))
+
+# 遍历 AST Tree, 标记所有 leaves 的深度
 traverse_and_annotate(ast_tree, 0)
+
+# 遍历并输出 AST Tree
 # traverse_and_print(ast_tree, 0)
 
+# 获取 AST Tree 的树叶集
 leaves_list = []
 traverse_and_storeleaves(ast_tree, leaves_list)
+
+# 根据 AST Tree 的树叶集搜索出所有路径
 bruteforce_search_path(leaves_list)
