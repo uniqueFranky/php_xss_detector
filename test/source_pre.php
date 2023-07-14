@@ -1,3 +1,4 @@
+<?
 $array = array();
 $array[] = 'safe' ;
 $array[] = $_GET['userData'] ;

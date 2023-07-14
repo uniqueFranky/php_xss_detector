@@ -1,0 +1,5 @@
+code,label
+'<?php echo $_GET["name"]; ?>',1
+'<?php $x = $_POST["input"]; echo $x; ?>',1
+'<?php $y = "Hello World!"; echo $y; ?>',0
+'<?php $z = $_GET["data"]; echo $z; ?>',1
