@@ -111,7 +111,8 @@ def print_the_path(oneLeave: dict, theOtherLeave: dict):
     print(oneLeave["children"][0], end="")
     childright = theOtherLeave["children"][0]
 
-    one_node_path = theOther_node_path = []
+    one_node_path = []
+    theOther_node_path = []
     if oneLeave["depth"] > theOtherLeave["depth"]:
         diff = oneLeave["depth"] - theOtherLeave["depth"]
         for _ in range(diff):
@@ -132,6 +133,8 @@ def print_the_path(oneLeave: dict, theOtherLeave: dict):
         if oneLeave is theOtherLeave:
             break
     
+    one_node_path.append(oneLeave["nodeName"])
+
     print(",", end="")
     for node in one_node_path:
         print(f"{node},", end="")
