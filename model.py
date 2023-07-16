@@ -99,15 +99,12 @@ class ASTModel(nn.Module):
         self.output_size = output_size
         self.embedding = nn.Embedding(vocab_size, embedding_size, padding_idx=ast_vocab['<pad>']).to(device)
         self.combine = nn.Linear(3 * embedding_size, hidden_size).to(device)
-        self.linear2 = nn.Linear(hidden_size, 2 * hidden_size).to(device)
-        self.linear3 = nn.Linear(2 * hidden_size, hidden_size).to(device)
         self.attention = torch.rand(hidden_size, 1).to(device)
-        self.linear = nn.Linear(hidden_size, output_size).to(device)
+        self.linear = nn.Linear(hidden_size, hidden_size * 2).to(device)
+        self.linear2 = nn.Linear(hidden_size * 2, output_size).to(device)
         torch.nn.init.xavier_uniform_(self.linear.weight)
         torch.nn.init.xavier_uniform_(self.combine.weight)
         torch.nn.init.xavier_uniform_(self.embedding.weight)
-        torch.nn.init.xavier_uniform_(self.linear2.weight)
-        torch.nn.init.xavier_uniform_(self.linear3.weight)
 
     def forward(self, left, mid, right):
         left = self.embedding(left)
@@ -116,15 +113,13 @@ class ASTModel(nn.Module):
         x = torch.cat((left, mid, right), dim=1).to(device)
         x = self.combine(x)
         x = torch.relu(x)
-        x = self.linear2(x)
-        x = torch.relu(x)
-        x = self.linear3(x)
-        x = torch.relu(x)
         alpha = torch.matmul(x, self.attention).to(device)
         alpha = torch.tanh(alpha)
         x = torch.mul(x, alpha)
         x = torch.sum(x, dim=0)
         x = self.linear(x)
+        x = torch.relu(x)
+        x = self.linear2(x)
         x = torch.tanh(x)
         return x
 
