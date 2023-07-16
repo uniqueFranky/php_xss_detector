@@ -124,16 +124,18 @@ def build_ast_vocab(train_path='./dataset/train_datas/', test_path='./dataset/te
         convert_whole_dataset_to_ast_paths(train_path, test_path)
     
     tokens = set()
-    for ast_path in train_safe_ast_paths:
-        left_node, mid_path, right_node = convert_ast_path_to_terminals_and_path(ast_path)
-        tokens.add(left_node)
-        tokens.add(right_node)
-        tokens.add(mid_path)
-    for ast_path in train_unsafe_ast_paths:
-        left_node, mid_path, right_node = convert_ast_path_to_terminals_and_path(ast_path)
-        tokens.add(left_node)
-        tokens.add(right_node)
-        tokens.add(mid_path)
+    for ast_paths in train_safe_ast_paths:
+        for ast_path in ast_paths:
+            left_node, mid_path, right_node = convert_ast_path_to_terminals_and_path(ast_path)
+            tokens.add(left_node)
+            tokens.add(right_node)
+            tokens.add(mid_path)
+    for ast_paths in train_unsafe_ast_paths:
+        for ast_path in ast_paths:
+            left_node, mid_path, right_node = convert_ast_path_to_terminals_and_path(ast_path)
+            tokens.add(left_node)
+            tokens.add(right_node)
+            tokens.add(mid_path)
 
     vocab = {}
     for token in tokens:

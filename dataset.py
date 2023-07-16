@@ -68,28 +68,40 @@ class ASTDataSet(torch.utils.data.Dataset):
             safe_ast_paths = preprocessing.convert_file_paths_to_ast_paths(self.safe_paths)
             unsafe_ast_paths = preprocessing.convert_file_paths_to_ast_paths(self.unsafe_paths)
 
-            for ast_path in safe_ast_paths:
-                left, mid, right = preprocessing.convert_ast_path_to_terminals_and_path(ast_path)
-                left = vocab[left] if left in vocab else vocab['<unk>']
-                right = vocab[right] if right in vocab else vocab['<unk>']
-                for i, node in enumerate(mid):
-                    mid[i] = vocab[node] if node in vocab else vocab['<unk>']
-
-                self.left_features.append(left)
-                self.mid_features.append(mid)
-                self.right_features.append(right)
+            for ast_paths in safe_ast_paths:
+                left_nodes = []
+                mid_paths = []
+                right_nodes = []
+                for ast_path in ast_paths:
+                    left, mid, right = preprocessing.convert_ast_path_to_terminals_and_path(ast_path)
+                    left = vocab[left] if left in vocab else vocab['<unk>']
+                    mid = vocab[mid] if mid in vocab else vocab['<unk>']
+                    right = vocab[right] if right in vocab else vocab['<unk>']
+                    left_nodes.append(left)
+                    mid_paths.append(mid)
+                    right_nodes.append(right)
+                    
+                self.left_features.append(left_nodes)
+                self.mid_features.append(mid_paths)
+                self.right_features.append(right_nodes)
                 self.labels.append(0)
 
-            for ast_path in unsafe_ast_paths:
-                left, mid, right = preprocessing.convert_ast_path_to_terminals_and_path(ast_path)
-                left = vocab[left] if left in vocab else vocab['<unk>']
-                right = vocab[right] if right in vocab else vocab['<unk>']
-                for i, node in enumerate(mid):
-                    mid[i] = vocab[node] if node in vocab else vocab['<unk>']
+            for ast_paths in unsafe_ast_paths:
+                left_nodes = []
+                mid_paths = []
+                right_nodes = []
+                for ast_path in ast_paths:
+                    left, mid, right = preprocessing.convert_ast_path_to_terminals_and_path(ast_path)
+                    left = vocab[left] if left in vocab else vocab['<unk>']
+                    mid = vocab[mid] if mid in vocab else vocab['<unk>']
+                    right = vocab[right] if right in vocab else vocab['<unk>']
+                    left_nodes.append(left)
+                    mid_paths.append(mid)
+                    right_nodes.append(right)
                     
-                self.left_features.append(left)
-                self.mid_features.append(mid)
-                self.right_features.append(right)
+                self.left_features.append(left_nodes)
+                self.mid_features.append(mid_paths)
+                self.right_features.append(right_nodes)
                 self.labels.append(1)
 
             with open(prefix + 'left_features.json', 'w') as f:
@@ -107,11 +119,22 @@ class ASTDataSet(torch.utils.data.Dataset):
         left_tmp = self.left_features.copy()
         mid_tmp = self.mid_features.copy()
         right_tmp = self.right_features.copy()
+        labels_tmp = self.labels.copy()
         for i in range(len(self.labels)):
             left_tmp[i] = self.left_features[idx[i]]
             mid_tmp[i] = self.mid_features[idx[i]]
             right_tmp[i] = self.right_features[idx[i]]
+            labels_tmp[i] = self.labels[idx[i]]
         self.left_features = left_tmp
         self.mid_features = mid_tmp
         self.right_features = right_tmp
+        self.labels = labels_tmp
+
+    def __getitem__(self, idx):
+        return self.left_features[idx], self.mid_features[idx], self.right_features[idx], self.labels[idx]
         
+    def __len__(self):
+        return len(self.left_features)
+
+
+train_dataset = ASTDataSet('dataset/test_datas', 'ast_test_')
