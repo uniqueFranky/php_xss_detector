@@ -44,7 +44,8 @@ def buildAstTree(dict_tree: dict, parent: dict):
     # dict_tree is a leaf node
     for leaf_elem in leaf_list:
         if leaf_elem in dict_tree and checkLeaf(dict_tree[leaf_elem]) == True:
-            return {'isLeaf': True, 'nodeType': dict_tree['nodeType'], 'value': dict_tree[leaf_elem], 'parent': parent}
+            return {'isLeaf': True, 'nodeType': dict_tree['nodeType'], 'value': dict_tree[leaf_elem], 'parent': parent, \
+                    'line': dict_tree["attributes"]["startLine"]}
 
     # dict_tree is a mid node
     ret_tree = {}
@@ -108,18 +109,18 @@ def traverse_and_storeleaves(tree: dict, leaves_list: list):
 
 
 # printing out the whole path in the AST Tree
-def bruteforce_search_path(leaves_list: list, fp):
+def bruteforce_search_path(leaves_list: list):
     result = []
     for i in range(len(leaves_list)):
         for j in range(i + 1, len(leaves_list)):
-            result.append(get_the_path(leaves_list[i], leaves_list[j], fp))
+            result.append(get_the_path(leaves_list[i], leaves_list[j]))
     return result
 
 
-# given two leaves, find the path between them, print them to fp
-def get_the_path(oneLeave: dict, theOtherLeave: dict, fp):
-    childleft = oneLeave["value"]
-    childright = theOtherLeave["value"]
+# given two leaves, find the path between them
+def get_the_path(oneLeave: dict, theOtherLeave: dict):
+    childleft = oneLeave
+    childright = theOtherLeave
     one_node_path = []
     theOther_node_path = []
     result = ''
@@ -144,16 +145,16 @@ def get_the_path(oneLeave: dict, theOtherLeave: dict, fp):
             break
     
     theOther_node_path.insert(0, oneLeave["nodeType"])
-
+    result += '(' + str(childleft['value']) + str(childleft['line']) + ')' + '↑'
     for node in one_node_path:
         result += node + '↑'
     for node in theOther_node_path:
         result += node + '↓'
+    result += '(' + str(childright['value']) + str(childright['line']) + ')'
+    return result
 
-    fp.write(f"{childleft}, {result}, {childright}\n")
 
-
-def get_paths_on_tree(ast_json, fp):
+def get_paths_on_tree(ast_json):
     # 导入 Json 文件 
     dict = json.loads(ast_json)
     # 构建 AST Tree
@@ -174,18 +175,9 @@ def get_paths_on_tree(ast_json, fp):
     traverse_and_storeleaves(ast_tree, leaves_list)
 
     # 根据 AST Tree 的树叶集搜索出所有路径
-    bruteforce_search_path(leaves_list, fp)
+    return bruteforce_search_path(leaves_list)
     # return paths
 
 
-# datasets 文件夹是位于同目录下的文件夹，存储所有待训练和测试的 Json 文件
-# converted_datasets 文件夹是位于同目录下的文件夹，将存放转化后的 Json 文件
-# 需要先创建 converted_datasets 文件夹
-filenames = os.listdir('datasets')
-for file in filenames:
-    with open('datasets/' + file, "r", encoding='utf-8') as f :
-        ast_json_tree = f.read()
-        filepath = 'converted_datasets/' + file
-        with open(filepath, "w", encoding='utf-8') as fp:
-            get_paths_on_tree(ast_json_tree, fp)
+
         
