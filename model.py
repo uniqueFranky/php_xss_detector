@@ -5,7 +5,8 @@ import os
 import preprocessing
 
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-print('running on ', device)
+# device = 'mps' if torch.backends.mps.is_available() else device
+print('running on', device)
 device = torch.device(device)
 vocab = preprocessing.build_dict()
 
