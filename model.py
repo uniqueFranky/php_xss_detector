@@ -152,7 +152,7 @@ def positional_encoding(positions, embedding_size):
             else:
                 embed.append(math.cos(pos / (10000 ** ((j - 1) / embedding_size))))
         result.append(embed)
-    return torch.FloatTensor(result)
+    return torch.FloatTensor(result).to(device)
 
 
 def ast_train(vocab_size, embedding_size, hidden_size, output_size, num_epoch, lr):
