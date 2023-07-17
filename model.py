@@ -100,7 +100,8 @@ class ASTModel(nn.Module):
         self.embedding = nn.Embedding(vocab_size, embedding_size, padding_idx=ast_vocab['<pad>']).to(device)
         self.combine = nn.Linear(3 * embedding_size, hidden_size).to(device)
         self.attention = torch.rand(hidden_size, 1).to(device)
-        self.linear = nn.Linear(hidden_size, output_size).to(device)
+        self.linear = nn.Linear(hidden_size, int(hidden_size / 2)).to(device)
+        self.linear2 = nn.Linear(int(hidden_size / 2), output_size).to(device)
         torch.nn.init.xavier_uniform_(self.linear.weight)
         torch.nn.init.xavier_uniform_(self.combine.weight)
         torch.nn.init.xavier_uniform_(self.embedding.weight)
@@ -117,6 +118,8 @@ class ASTModel(nn.Module):
         x = torch.mul(x, alpha)
         x = torch.sum(x, dim=0)
         x = self.linear(x)
+        x = torch.relu(x)
+        x = self.linear2(x)
         x = torch.tanh(x)
         return x
 
@@ -170,3 +173,26 @@ def ast_train(vocab_size, embedding_size, hidden_size, output_size, num_epoch, l
                     acc += 1
         print('on test dataset: acc =', acc / len(test_dataset))
 
+
+def ast_eval(model_path):
+    model = ASTModel(vocab_size=2076, embedding_size=500, hidden_size=500, output_size=2)
+    model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
+    model.eval()
+
+    test_dataset = dataset.ASTDataSet('./dataset/test_datas', prefix='ast_test_')
+    acc = 0
+    for left, mid, right, label in test_dataset:
+        with torch.no_grad():
+            left = torch.tensor(left).to(device)
+            mid = torch.tensor(mid).to(device)
+            right = torch.tensor(right).to(device)
+            label = torch.tensor(label).to(device)
+            pred = model(left, mid, right).to(device)
+            if pred[0].item() > pred[1].item() and 0 == label.item():
+                acc += 1
+            if pred[1].item() > pred[0].item() and 1 == label.item():
+                acc += 1
+    print('on test dataset: acc =', acc / len(test_dataset))
+
+
+ast_eval('model2_93.ckp')
