@@ -106,6 +106,7 @@ class ASTModel(nn.Module):
         torch.nn.init.xavier_uniform_(self.linear.weight)
         torch.nn.init.xavier_uniform_(self.combine.weight)
         torch.nn.init.xavier_uniform_(self.embedding.weight)
+        torch.nn.init.xavier_uniform_(self.linear2.weight)
 
     def forward(self, left, mid, right):
         left = self.embedding(left)
