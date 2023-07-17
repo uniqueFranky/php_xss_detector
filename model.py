@@ -3,6 +3,7 @@ import torch
 import dataset
 import os
 import preprocessing
+import math
 
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 # device = 'mps' if torch.backends.mps.is_available() else device
@@ -100,6 +101,7 @@ class ASTModel(nn.Module):
         self.output_size = output_size
         self.embedding = nn.Embedding(vocab_size, embedding_size, padding_idx=ast_vocab['<pad>']).to(device)
         self.combine = nn.Linear(3 * embedding_size, hidden_size).to(device)
+        self.positional_combine = nn.Linear(2 * embedding_size, embedding_size).to(device)
         self.attention = torch.rand(hidden_size, 1).to(device)
         self.linear = nn.Linear(hidden_size, int(hidden_size / 2)).to(device)
         self.linear2 = nn.Linear(int(hidden_size / 2), output_size).to(device)
@@ -107,14 +109,28 @@ class ASTModel(nn.Module):
         torch.nn.init.xavier_uniform_(self.combine.weight)
         torch.nn.init.xavier_uniform_(self.embedding.weight)
         torch.nn.init.xavier_uniform_(self.linear2.weight)
+        torch.nn.init.xavier_uniform_(self.positional_combine.weight)
 
-    def forward(self, left, mid, right):
+
+    def forward(self, left, left_pos, mid, right, right_pos):
         left = self.embedding(left)
         mid = self.embedding(mid)
         right = self.embedding(right)
+
+        left_positional_encoding = positional_encoding(left_pos, self.embedding_size)
+        left = torch.cat((left, left_positional_encoding), dim=1).to(device)
+        left = self.positional_combine(left)
+        left = torch.relu(left)
+
+        right_positional_encoding = positional_encoding(right_pos, self.embedding_size)
+        right = torch.cat((right, right_positional_encoding), dim=1).to(device)
+        right = self.positional_combine(right)
+        right = torch.relu(right)
+
         x = torch.cat((left, mid, right), dim=1).to(device)
         x = self.combine(x)
         x = torch.relu(x)
+
         alpha = torch.matmul(x, self.attention).to(device)
         alpha = torch.tanh(alpha)
         x = torch.mul(x, alpha)
@@ -125,6 +141,19 @@ class ASTModel(nn.Module):
         x = torch.tanh(x)
         return x
 
+def positional_encoding(positions, embedding_size):
+    result = []
+    for i in range(positions.size()[0]):
+        pos = positions[i].item() - 45
+        embed = []
+        for j in range(embedding_size):
+            if j % 2 == 0:
+                embed.append(math.sin(pos / (10000 ** (j / embedding_size))))
+            else:
+                embed.append(math.cos(pos / (10000 ** ((j - 1) / embedding_size))))
+        result.append(embed)
+    return torch.FloatTensor(result)
+
 
 def ast_train(vocab_size, embedding_size, hidden_size, output_size, num_epoch, lr):
     model = ASTModel(vocab_size, embedding_size, hidden_size, output_size).to(device)
@@ -133,12 +162,14 @@ def ast_train(vocab_size, embedding_size, hidden_size, output_size, num_epoch, l
     train_dataset = dataset.ASTDataSet('./dataset/train_datas', prefix='ast_train_')
     test_dataset = dataset.ASTDataSet('./dataset/test_datas', prefix='ast_test_')
     for epoch in range(num_epoch):
-        for left, mid, right, label in train_dataset:
+        for left, left_pos, mid, right, right_pos, label in train_dataset:
             left = torch.tensor(left).to(device)
             mid = torch.tensor(mid).to(device)
             right = torch.tensor(right).to(device)
             label = torch.tensor(label).to(device)
-            pred = model(left, mid, right).to(device)
+            left_pos = torch.tensor(left_pos).to(device)
+            right_pos = torch.tensor(right_pos).to(device)
+            pred = model(left, left_pos, mid, right, right_pos).to(device)
             loss = criterion(pred, label)
             optimizer.zero_grad()
             loss.backward()
@@ -146,13 +177,16 @@ def ast_train(vocab_size, embedding_size, hidden_size, output_size, num_epoch, l
         torch.save(model.state_dict(), 'checkpoint#' + str(epoch) + '.ckp')
         print(f'checkpoint %d / %d written' %(epoch + 1, num_epoch))
         acc = 0
-        for left, mid, right, label in train_dataset:
-            with torch.no_grad():
+        with torch.no_grad():
+            for left, left_pos, mid, right, right_pos, label in train_dataset:
                 left = torch.tensor(left).to(device)
                 mid = torch.tensor(mid).to(device)
                 right = torch.tensor(right).to(device)
                 label = torch.tensor(label).to(device)
-                pred = model(left, mid, right).to(device)
+                left_pos = torch.tensor(left_pos).to(device)
+                right_pos = torch.tensor(right_pos).to(device)
+                pred = model(left, left_pos, mid, right, right_pos).to(device)
+
                 if pred[0].item() > pred[1].item() and 0 == label.item():
                     acc += 1
                 if pred[1].item() > pred[0].item() and 1 == label.item():
@@ -160,13 +194,16 @@ def ast_train(vocab_size, embedding_size, hidden_size, output_size, num_epoch, l
         print('on train dataset: acc =', acc / len(train_dataset))
 
         acc = 0
-        for left, mid, right, label in test_dataset:
-            with torch.no_grad():
+        with torch.no_grad():
+            for left, left_pos, mid, right, right_pos, label in test_dataset:
                 left = torch.tensor(left).to(device)
                 mid = torch.tensor(mid).to(device)
                 right = torch.tensor(right).to(device)
                 label = torch.tensor(label).to(device)
-                pred = model(left, mid, right).to(device)
+                left_pos = torch.tensor(left_pos).to(device)
+                right_pos = torch.tensor(right_pos).to(device)
+                pred = model(left, left_pos, mid, right, right_pos).to(device)
+
                 if pred[0].item() > pred[1].item() and 0 == label.item():
                     acc += 1
                 if pred[1].item() > pred[0].item() and 1 == label.item():
