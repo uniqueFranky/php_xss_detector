@@ -105,6 +105,8 @@ class ASTModel(nn.Module):
         torch.nn.init.xavier_uniform_(self.linear.weight)
         torch.nn.init.xavier_uniform_(self.combine.weight)
         torch.nn.init.xavier_uniform_(self.embedding.weight)
+        torch.nn.init.xavier_uniform_(self.linear2.weight)
+        torch.nn.init.xavier_uniform_(self.attention)
 
     def forward(self, left, mid, right):
         left = self.embedding(left)
@@ -195,4 +197,47 @@ def ast_eval(model_path):
     print('on test dataset: acc =', acc / len(test_dataset))
 
 
-ast_eval('model2_93.ckp')
+def ast_eval_certain_code(model_path, code_path):
+    model = ASTModel(vocab_size=2076, embedding_size=500, hidden_size=500, output_size=2)
+    model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
+    model.eval()
+
+    with open(code_path, 'r') as f:
+        code = f.read()
+    paths = preprocessing.convert_code_to_ast_paths(code)
+    print(paths)
+    left_nodes = []
+    mid_paths = []
+    right_nodes = []
+    for ast_path in paths:
+        left, mid, right = preprocessing.convert_ast_path_to_terminals_and_path(ast_path)
+        left = vocab[left] if left in vocab else vocab['<unk>']
+        mid = vocab[mid] if mid in vocab else vocab['<unk>']
+        right = vocab[right] if right in vocab else vocab['<unk>']
+        left_nodes.append(left)
+        mid_paths.append(mid)
+        right_nodes.append(right)
+
+    left = torch.IntTensor(left_nodes).to(device)
+    mid = torch.IntTensor(mid_paths).to(device)
+    right = torch.IntTensor(right_nodes).to(device)
+
+    pred = model(left, mid, right)
+    print(pred)
+
+
+    left = model.embedding(left)
+    mid = model.embedding(mid)
+    right = model.embedding(right)
+    x = torch.cat((left, mid, right), dim=1).to(device)
+    x = model.combine(x)
+    x = torch.relu(x)
+    alpha = torch.matmul(x, model.attention).to(device)
+    alpha = torch.tanh(alpha)
+    alpha = alpha.squeeze(1)
+    sorted, idx = torch.topk(alpha, 15)
+    
+    for i in idx:
+        print(sorted[i].item(), paths[i])
+
+# ast_eval_certain_code('model2_93.ckp', 'dataset/test_datas/unsafe/CWE_79__unserialize__func_mysql_real_escape_string__Use_untrusted_data_script-window_SetInterval.php')
