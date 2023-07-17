@@ -44,7 +44,8 @@ def buildAstTree(dict_tree: dict, parent: dict):
     # dict_tree is a leaf node
     for leaf_elem in leaf_list:
         if leaf_elem in dict_tree and checkLeaf(dict_tree[leaf_elem]) == True:
-            return {'isLeaf': True, 'nodeType': dict_tree['nodeType'], 'value': dict_tree[leaf_elem], 'parent': parent}
+            return {'isLeaf': True, 'nodeType': dict_tree['nodeType'], 'value': dict_tree[leaf_elem], 'parent': parent, \
+                    'line': dict_tree["attributes"]["startLine"]}
 
     # dict_tree is a mid node
     ret_tree = {}
@@ -118,8 +119,8 @@ def bruteforce_search_path(leaves_list: list):
 
 # given two leaves, find the path between them
 def get_the_path(oneLeave: dict, theOtherLeave: dict):
-    childleft = oneLeave["value"]
-    childright = theOtherLeave["value"]
+    childleft = oneLeave
+    childright = theOtherLeave
     one_node_path = []
     theOther_node_path = []
     result = ''
@@ -144,12 +145,12 @@ def get_the_path(oneLeave: dict, theOtherLeave: dict):
             break
     
     theOther_node_path.insert(0, oneLeave["nodeType"])
-    result += str(childleft) + '↑'
+    result += '(' + str(childleft['value']) + str(childleft['line']) + ')' + '↑'
     for node in one_node_path:
         result += node + '↑'
     for node in theOther_node_path:
         result += node + '↓'
-    result += str(childright)
+    result += '(' + str(childright['value']) + str(childright['line']) + ')'
     return result
 
 
