@@ -100,7 +100,8 @@ class ASTModel(nn.Module):
         self.embedding = nn.Embedding(vocab_size, embedding_size, padding_idx=ast_vocab['<pad>']).to(device)
         self.combine = nn.Linear(3 * embedding_size, hidden_size).to(device)
         self.attention = torch.rand(hidden_size, 1).to(device)
-        self.linear = nn.Linear(hidden_size, output_size).to(device)
+        self.linear = nn.Linear(hidden_size, hidden_size / 2).to(device)
+        self.linear2 = nn.Linear(hidden_size / 2, output_size).to(device)
         torch.nn.init.xavier_uniform_(self.linear.weight)
         torch.nn.init.xavier_uniform_(self.combine.weight)
         torch.nn.init.xavier_uniform_(self.embedding.weight)
@@ -117,6 +118,8 @@ class ASTModel(nn.Module):
         x = torch.mul(x, alpha)
         x = torch.sum(x, dim=0)
         x = self.linear(x)
+        x = torch.relu(x)
+        x = self.linear2(x)
         x = torch.tanh(x)
         return x
 
@@ -127,8 +130,6 @@ def ast_train(vocab_size, embedding_size, hidden_size, output_size, num_epoch, l
     criterion = nn.CrossEntropyLoss().to(device)
     train_dataset = dataset.ASTDataSet('./dataset/train_datas', prefix='ast_train_')
     test_dataset = dataset.ASTDataSet('./dataset/test_datas', prefix='ast_test_')
-    print(len(train_dataset))
-    print(len(test_dataset))
     for epoch in range(num_epoch):
         for left, mid, right, label in train_dataset:
             left = torch.tensor(left).to(device)
