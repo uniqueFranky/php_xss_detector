@@ -103,12 +103,10 @@ class ASTModel(nn.Module):
         self.combine = nn.Linear(3 * embedding_size, hidden_size).to(device)
         self.positional_combine = nn.Linear(2 * embedding_size, embedding_size).to(device)
         self.attention = torch.rand(hidden_size, 1).to(device)
-        self.linear = nn.Linear(hidden_size, int(hidden_size / 2)).to(device)
-        self.linear2 = nn.Linear(int(hidden_size / 2), output_size).to(device)
+        self.linear = nn.Linear(hidden_size, output_size).to(device)
         torch.nn.init.xavier_uniform_(self.linear.weight)
         torch.nn.init.xavier_uniform_(self.combine.weight)
         torch.nn.init.xavier_uniform_(self.embedding.weight)
-        torch.nn.init.xavier_uniform_(self.linear2.weight)
         torch.nn.init.xavier_uniform_(self.positional_combine.weight)
 
         self.positional_encodings = []
@@ -145,15 +143,13 @@ class ASTModel(nn.Module):
         x = torch.mul(x, alpha)
         x = torch.sum(x, dim=0)
         x = self.linear(x)
-        x = torch.relu(x)
-        x = self.linear2(x)
         x = torch.tanh(x)
         return x
     
     def positional_encoding(self, positions):
         result = []
-        for i in range(positions.size()[0]):
-            pos = positions[i].item() - 45
+        for i in range(len(positions)):
+            pos = positions[i] - 45
             result.append(self.positional_encodings[pos])
         return torch.FloatTensor(result).to(device)
 
@@ -171,8 +167,6 @@ def ast_train(vocab_size, embedding_size, hidden_size, output_size, num_epoch, l
             mid = torch.tensor(mid).to(device)
             right = torch.tensor(right).to(device)
             label = torch.tensor(label).to(device)
-            left_pos = torch.tensor(left_pos).to(device)
-            right_pos = torch.tensor(right_pos).to(device)
             pred = model(left, left_pos, mid, right, right_pos).to(device)
             loss = criterion(pred, label)
             optimizer.zero_grad()
