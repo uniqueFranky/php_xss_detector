@@ -111,18 +111,27 @@ class ASTModel(nn.Module):
         torch.nn.init.xavier_uniform_(self.linear2.weight)
         torch.nn.init.xavier_uniform_(self.positional_combine.weight)
 
+        self.positional_encodings = []
+        for pos in range(10000):
+            embed = []
+            for i in range(self.embedding_size):
+                if i % 2 == 0:
+                    embed.append(math.sin(pos / (10000 ** (i / embedding_size))))
+                else:
+                    embed.append(math.cos(pos / (10000 ** ((i - 1) / embedding_size))))
+            self.positional_encodings.append(embed)
 
     def forward(self, left, left_pos, mid, right, right_pos):
         left = self.embedding(left)
         mid = self.embedding(mid)
         right = self.embedding(right)
 
-        left_positional_encoding = positional_encoding(left_pos, self.embedding_size)
+        left_positional_encoding = self.positional_encoding(left_pos)
         left = torch.cat((left, left_positional_encoding), dim=1).to(device)
         left = self.positional_combine(left)
         left = torch.relu(left)
 
-        right_positional_encoding = positional_encoding(right_pos, self.embedding_size)
+        right_positional_encoding = self.positional_encoding(right_pos)
         right = torch.cat((right, right_positional_encoding), dim=1).to(device)
         right = self.positional_combine(right)
         right = torch.relu(right)
@@ -140,19 +149,14 @@ class ASTModel(nn.Module):
         x = self.linear2(x)
         x = torch.tanh(x)
         return x
+    
+    def positional_encoding(self, positions):
+        result = []
+        for i in range(positions.size()[0]):
+            pos = positions[i].item() - 45
+            result.append(self.positional_encodings[pos])
+        return torch.FloatTensor(result).to(device)
 
-def positional_encoding(positions, embedding_size):
-    result = []
-    for i in range(positions.size()[0]):
-        pos = positions[i].item() - 45
-        embed = []
-        for j in range(embedding_size):
-            if j % 2 == 0:
-                embed.append(math.sin(pos / (10000 ** (j / embedding_size))))
-            else:
-                embed.append(math.cos(pos / (10000 ** ((j - 1) / embedding_size))))
-        result.append(embed)
-    return torch.FloatTensor(result).to(device)
 
 
 def ast_train(vocab_size, embedding_size, hidden_size, output_size, num_epoch, lr):
