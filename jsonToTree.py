@@ -145,12 +145,12 @@ def get_the_path(oneLeave: dict, theOtherLeave: dict):
             break
     
     theOther_node_path.insert(0, oneLeave["nodeType"])
-    result += '(' + str(childleft['value']) + str(childleft['line']) + ')' + '↑'
+    result += '(' + str(childleft['value']) + ',' + str(childleft['line']) + ')' + '↑'
     for node in one_node_path:
         result += node + '↑'
     for node in theOther_node_path:
         result += node + '↓'
-    result += '(' + str(childright['value']) + str(childright['line']) + ')'
+    result += '(' + str(childright['value']) + ',' + str(childright['line']) + ')'
     return result
 
 
