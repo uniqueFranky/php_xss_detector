@@ -36,7 +36,7 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     train_datas = dataset.CodeDataSet('./dataset/train_datas', prefix='train_')
     test_datas = dataset.CodeDataSet('./dataset/test_datas', prefix='test_')
-    loader = torch.utils.data.DataLoader(train_datas, batch_size=16, collate_fn=collate_fn)
+    loader = torch.utils.data.DataLoader(train_datas, batch_size=1, collate_fn=collate_fn)
     for epoch in range(num_epoch):
         for x, y in loader:
             x = x.to(device)
@@ -201,19 +201,18 @@ def ast_eval_certain_code(model_path, code_path):
     model = ASTModel(vocab_size=2076, embedding_size=500, hidden_size=500, output_size=2)
     model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
     model.eval()
-
+    ast_vocab = preprocessing.build_ast_vocab()
     with open(code_path, 'r') as f:
         code = f.read()
     paths = preprocessing.convert_code_to_ast_paths(code)
-    print(paths)
     left_nodes = []
     mid_paths = []
     right_nodes = []
     for ast_path in paths:
         left, mid, right = preprocessing.convert_ast_path_to_terminals_and_path(ast_path)
-        left = vocab[left] if left in vocab else vocab['<unk>']
-        mid = vocab[mid] if mid in vocab else vocab['<unk>']
-        right = vocab[right] if right in vocab else vocab['<unk>']
+        left = ast_vocab[left] if left in ast_vocab else ast_vocab['<unk>']
+        mid = ast_vocab[mid] if mid in ast_vocab else ast_vocab['<unk>']
+        right = ast_vocab[right] if right in ast_vocab else ast_vocab['<unk>']
         left_nodes.append(left)
         mid_paths.append(mid)
         right_nodes.append(right)
@@ -224,8 +223,6 @@ def ast_eval_certain_code(model_path, code_path):
 
     pred = model(left, mid, right)
     print(pred)
-
-
     left = model.embedding(left)
     mid = model.embedding(mid)
     right = model.embedding(right)
@@ -235,9 +232,12 @@ def ast_eval_certain_code(model_path, code_path):
     alpha = torch.matmul(x, model.attention).to(device)
     alpha = torch.tanh(alpha)
     alpha = alpha.squeeze(1)
-    sorted, idx = torch.topk(alpha, 15)
-    
-    for i in idx:
-        print(sorted[i].item(), paths[i])
+    sorted, idx = torch.topk(alpha, 5)
+    for i, id in enumerate(idx):
+        print(sorted[i].item(), paths[id])
 
-# ast_eval_certain_code('model2_93.ckp', 'dataset/test_datas/unsafe/CWE_79__unserialize__func_mysql_real_escape_string__Use_untrusted_data_script-window_SetInterval.php')
+ast_eval_certain_code('model2_93.ckp', 'dataset/test_datas/safe/CWE_79__system__CAST-func_settype_int__Use_untrusted_data_script-quoted_Event_Handler.php')
+
+
+# 有问题：
+# dataset/test_datas/safe/CWE_79__system__CAST-func_settype_int__Use_untrusted_data_script-quoted_Event_Handler.php
