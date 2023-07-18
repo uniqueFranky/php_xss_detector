@@ -136,5 +136,3 @@ class ASTDataSet(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.left_features)
 
-
-train_dataset = ASTDataSet('dataset/test_datas', 'ast_test_')

@@ -5,9 +5,7 @@ import os
 import preprocessing
 
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-print('running on ', device)
 device = torch.device(device)
-vocab = preprocessing.build_dict()
 
 class Model(nn.Module):
     def __init__(self, vocab_size, embedding_size, hidden_size, num_layers, output_size):
@@ -237,7 +235,7 @@ def ast_eval_certain_code(model_path, code_path):
     for i, id in enumerate(idx):
         print(sorted[i].item(), paths[id])
 
-ast_eval_certain_code('model2_96.ckp', 'dataset/test_datas/unsafe/CWE_79__shell_exec__func_htmlspecialchars__Unsafe_use_untrusted_data-tag_Name.php')
+# ast_eval_certain_code('model2_96.ckp', 'dataset/test_datas/unsafe/CWE_79__shell_exec__func_htmlspecialchars__Unsafe_use_untrusted_data-tag_Name.php')
 # ast_eval('model2_96.ckp')
 
 # 有问题：

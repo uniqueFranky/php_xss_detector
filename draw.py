@@ -137,12 +137,12 @@ def build_graph_by_json(ast_json):
 
     return graph
 
-with open('dataset/test_datas/safe/CWE_79__system__CAST-func_settype_int__Use_untrusted_data_script-quoted_Event_Handler.php', 'r') as f:
-    code = f.read()
-    parser = subprocess.run(['php', 'parser.php', code], check=True, stdout=subprocess.PIPE)
-    ast_json = parser.stdout.decode()
-    graph = build_graph_by_json(ast_json)
+# with open('dataset/test_datas/safe/CWE_79__system__CAST-func_settype_int__Use_untrusted_data_script-quoted_Event_Handler.php', 'r') as f:
+#     code = f.read()
+#     parser = subprocess.run(['php', 'parser.php', code], check=True, stdout=subprocess.PIPE)
+#     ast_json = parser.stdout.decode()
+#     graph = build_graph_by_json(ast_json)
     
-    path_to_find = 'tainted↑Expr_Variable↑Arg↑Expr_FuncCall↓Arg↓Scalar_String↓integer'
-    graph.find_specific_path_on_graph(path_to_find)
-    graph.render('graph')
+#     path_to_find = 'tainted↑Expr_Variable↑Arg↑Expr_FuncCall↓Arg↓Scalar_String↓integer'
+#     graph.find_specific_path_on_graph(path_to_find)
+#     graph.render('graph')
