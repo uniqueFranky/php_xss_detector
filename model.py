@@ -237,7 +237,7 @@ def ast_eval_certain_code(model_path, code_path):
     for i, id in enumerate(idx):
         print(sorted[i].item(), paths[id])
 
-ast_eval_certain_code('model2_96.ckp', 'vars.php')
+ast_eval_certain_code('model2_96.ckp', 'dataset/test_datas/unsafe/CWE_79__shell_exec__func_htmlspecialchars__Unsafe_use_untrusted_data-tag_Name.php')
 # ast_eval('model2_96.ckp')
 
 # 有问题：
