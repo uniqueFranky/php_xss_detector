@@ -15,6 +15,8 @@ def loadJson(filepath):
 
 # check if elem is a leaf value
 def checkLeaf(elem):
+    if elem == None:
+        return False
     if type(elem) == dict:
         return False
     if type(elem) == str and elem == 'null':
