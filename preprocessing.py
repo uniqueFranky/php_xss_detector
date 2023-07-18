@@ -149,6 +149,3 @@ def build_ast_vocab(train_path='./dataset/train_datas/', test_path='./dataset/te
 
     return vocab
 
-
-build_ast_vocab()
-

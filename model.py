@@ -102,12 +102,12 @@ class ASTModel(nn.Module):
         self.attention = torch.rand(hidden_size, 1).to(device)
         self.linear = nn.Linear(hidden_size, int(hidden_size / 2)).to(device)
         self.linear2 = nn.Linear(int(hidden_size / 2), output_size).to(device)
-        torch.nn.init.xavier_uniform_(self.linear.weight)
-        torch.nn.init.xavier_uniform_(self.linear2.weight)
-        torch.nn.init.xavier_uniform_(self.combine.weight)
-        torch.nn.init.xavier_uniform_(self.embedding.weight)
-        torch.nn.init.xavier_uniform_(self.linear2.weight)
-        torch.nn.init.xavier_uniform_(self.attention)
+        # torch.nn.init.xavier_uniform_(self.linear.weight)
+        # torch.nn.init.xavier_uniform_(self.linear2.weight)
+        # torch.nn.init.xavier_uniform_(self.combine.weight)
+        # torch.nn.init.xavier_uniform_(self.embedding.weight)
+        # torch.nn.init.xavier_uniform_(self.linear2.weight)
+        # torch.nn.init.xavier_uniform_(self.attention)
 
     def forward(self, left, mid, right):
         left = self.embedding(left)
@@ -178,7 +178,7 @@ def ast_train(vocab_size, embedding_size, hidden_size, output_size, num_epoch, l
 
 
 def ast_eval(model_path):
-    model = ASTModel(vocab_size=2076, embedding_size=500, hidden_size=500, output_size=2)
+    model = ASTModel(vocab_size=2676, embedding_size=500, hidden_size=500, output_size=2)
     model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
     model.eval()
 
@@ -199,7 +199,7 @@ def ast_eval(model_path):
 
 
 def ast_eval_certain_code(model_path, code_path):
-    model = ASTModel(vocab_size=2076, embedding_size=500, hidden_size=500, output_size=2)
+    model = ASTModel(vocab_size=2676, embedding_size=500, hidden_size=500, output_size=2)
     model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
     model.eval()
     ast_vocab = preprocessing.build_ast_vocab()
@@ -231,14 +231,14 @@ def ast_eval_certain_code(model_path, code_path):
     x = model.combine(x)
     x = torch.relu(x)
     alpha = torch.matmul(x, model.attention).to(device)
-    alpha = torch.tanh(alpha)
+    # alpha = torch.tanh(alpha)
     alpha = alpha.squeeze(1)
     sorted, idx = torch.topk(alpha, 5)
     for i, id in enumerate(idx):
         print(sorted[i].item(), paths[id])
 
-ast_eval_certain_code('model2_93.ckp', 'dataset/test_datas/safe/CWE_79__system__CAST-func_settype_int__Use_untrusted_data_script-quoted_Event_Handler.php')
-
+ast_eval_certain_code('model2_96.ckp', 'vars.php')
+# ast_eval('model2_96.ckp')
 
 # 有问题：
 # dataset/test_datas/safe/CWE_79__system__CAST-func_settype_int__Use_untrusted_data_script-quoted_Event_Handler.php

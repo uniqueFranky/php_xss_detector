@@ -1,7 +1,6 @@
 import os
 import json
 
-
 node_unused = ["Stmt_InlineHTML"]
 skip_tag = ["attributes", "nodeType"]
 leaf_list = ["value", "name", "parts"]
@@ -180,5 +179,3 @@ def get_paths_on_tree(ast_json):
     # return paths
 
 
-
-        
