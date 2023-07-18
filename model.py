@@ -103,6 +103,7 @@ class ASTModel(nn.Module):
         self.linear = nn.Linear(hidden_size, int(hidden_size / 2)).to(device)
         self.linear2 = nn.Linear(int(hidden_size / 2), output_size).to(device)
         torch.nn.init.xavier_uniform_(self.linear.weight)
+        torch.nn.init.xavier_uniform_(self.linear2.weight)
         torch.nn.init.xavier_uniform_(self.combine.weight)
         torch.nn.init.xavier_uniform_(self.embedding.weight)
         torch.nn.init.xavier_uniform_(self.linear2.weight)
@@ -135,7 +136,6 @@ def ast_train(vocab_size, embedding_size, hidden_size, output_size, num_epoch, l
     print(len(train_dataset))
     print(len(test_dataset))
     for epoch in range(num_epoch):
-        print('epoch =', epoch + 1)
         for left, mid, right, label in train_dataset:
             left = torch.tensor(left).to(device)
             mid = torch.tensor(mid).to(device)
@@ -146,7 +146,8 @@ def ast_train(vocab_size, embedding_size, hidden_size, output_size, num_epoch, l
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-
+        torch.save(model.state_dict(), 'checkpoint#' + str(epoch + 1) + '.ckp')
+        print(f'checkpoint %d / %d written' %(epoch + 1, num_epoch))
         acc = 0
         for left, mid, right, label in train_dataset:
             with torch.no_grad():
