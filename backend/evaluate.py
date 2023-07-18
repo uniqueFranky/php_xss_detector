@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import torch
+import math
 sys.path.append("..")
 import draw
 import preprocessing
@@ -46,8 +47,8 @@ def get_code_paths(model_path, code):
     alpha = torch.matmul(x, model.attention)
     # alpha = torch.tanh(alpha)
     alpha = alpha.squeeze(1)
-    sorted, idx = torch.topk(alpha, 5)
-    return sorted[rank].item(), paths[idx[rank]]
+    sorted, idx = torch.topk(alpha, 20)
+    return sorted[rank].item(), paths[idx[rank]], pred
 
 
 args = sys.argv
@@ -55,8 +56,13 @@ code = args[1]
 rank = int(args[2]) - 1
 file_name = args[3]
 
-attn, path = get_code_paths('model2_96.ckp', code)
+attn, path, pred = get_code_paths('model2_96.ckp', code)
 print(attn)
 print(path)
+neg = pred[0].item()
+pos = pred[1].item()
+print(math.exp(neg) / (math.exp(pos) + math.exp(neg)))
+print(math.exp(pos) / (math.exp(pos) + math.exp(neg)))
+
 get_ast_graph(code, file_name, path)
 
