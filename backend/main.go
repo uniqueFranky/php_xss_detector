@@ -84,6 +84,18 @@ func getASTGraph() http.HandlerFunc {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+		cmd = exec.Command("rm", strconv.Itoa(imageID)+".pdf") // 要执行的shell命令和参数
+		_, err = cmd.Output()
+		if err != nil {
+			fmt.Println("执行命令失败:", err)
+			return
+		}
+		cmd = exec.Command("rm", strconv.Itoa(imageID)) // 要执行的shell命令和参数
+		_, err = cmd.Output()
+		if err != nil {
+			fmt.Println("执行命令失败:", err)
+			return
+		}
 	}
 }
 

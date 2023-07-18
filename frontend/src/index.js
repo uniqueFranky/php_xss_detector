@@ -43,16 +43,16 @@ function App() {
         <div>
             <div>
                 <p>code to be parsed:</p>
-                <textarea rows={8} cols={80} value={code} onChange={(e) => setCode(e.target.value)} />
+                <textarea rows={5} cols={80} value={code} onChange={(e) => setCode(e.target.value)} />
                 <p>the rank of the AST path:</p>
                 <textarea rows={1} cols={2} value={rank} onChange={(e) => setRank(e.target.value)} />
                 <br/>
                 <button onClick={handleSubmit}>submit</button>
                 <p>Attention Weight: {attn}</p>
                 <p>Path: {path}</p>
-                <p>probability of negative: {negative}, positive: {positive}</p>
+                <p>probability of safe: {negative}, unsafe: {positive}</p>
             </div>
-            {pdfUrl && <embed src={pdfUrl} type="application/pdf" width="100%" height="500px" />}
+            {pdfUrl && <embed src={pdfUrl} type="application/pdf" width="100%" height="400px" />}
         </div>
     );
 }
