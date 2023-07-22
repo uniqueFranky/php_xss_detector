@@ -1,63 +1,107 @@
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
-import React, { useState } from 'react';
+import React, { Component } from 'react';
 import axios from 'axios';
 
-function App() {
-    const [code, setCode] = useState('');
-    const [pdfUrl, setPdfUrl] = useState('');
-    const [rank, setRank] = useState('')
-    const [attn, setAttn] = useState('')
-    const [path, setPath] = useState('')
-    const [positive, setPositive] = useState('')
-    const [negative, setNegative] = useState('')
+class App extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            code: '',
+            pdfUrl: '',
+            rank: '',
+            attn: '',
+            path: '',
+            positive: '',
+            negative: '',
+            input: false
+        };
+    }
 
-    const handleSubmit = async () => {
+    handleSubmit = async () => {
         try {
-            console.log(rank)
-            console.log(code)
+            const { code, rank } = this.state;
 
-            // 发送 HTTP 请求并接收 PDF 数据
-            const response1 = await axios.post('http://localhost:9999/getASTGraph/' + rank, code, { responseType: 'blob' });
-            // 创建一个 URL 对象
+            const response1 = await axios.post(
+                'http://localhost:9999/getASTGraph/' + rank,
+                code,
+                { responseType: 'blob' }
+            );
             const pdfUrl = URL.createObjectURL(response1.data);
+            this.setState({ pdfUrl });
 
-            // 更新 PDF URL
-            setPdfUrl(pdfUrl);
-
-            const response2 = await axios.post('http://localhost:9999/getAttnAndPath/' + rank, code, { responseType: 'application/json' });
-            // 创建一个 URL 对象
-            const data = JSON.parse(response2.data)
-            setAttn(data[0])
-            setPath(data[1])
-            setNegative(data[2])
-            setPositive(data[3])
-
+            const response2 = await axios.post(
+                'http://localhost:9999/getAttnAndPath/' + rank,
+                code,
+                { responseType: 'application/json' }
+            );
+            const [attn, path, negative, positive] = JSON.parse(response2.data);
+            this.setState({
+                attn,
+                path,
+                negative,
+                positive,
+                input: true
+            });
         } catch (error) {
             console.log('Error:', error);
         }
     };
 
-    return (
-        <div>
+    renderInputForm() {
+        const { code, rank } = this.state;
+
+        return (
             <div>
-                <p>code to be parsed:</p>
-                <textarea rows={5} cols={80} value={code} onChange={(e) => setCode(e.target.value)} />
-                <p>the rank of the AST path:</p>
-                <textarea rows={1} cols={2} value={rank} onChange={(e) => setRank(e.target.value)} />
-                <br/>
-                <button onClick={handleSubmit}>submit</button>
+                <div>
+                    <p>code to be parsed:</p>
+                    <textarea
+                        rows={5}
+                        cols={80}
+                        value={code}
+                        onChange={(e) => this.setState({ code: e.target.value })}
+                    />
+                    <p>the rank of the AST path:</p>
+                    <textarea
+                        rows={1}
+                        cols={2}
+                        value={rank}
+                        onChange={(e) => this.setState({ rank: e.target.value })}
+                    />
+                    <br />
+                    <button onClick={this.handleSubmit}>submit</button>
+                </div>
+            </div>
+        );
+    }
+
+    renderOutput() {
+        const { attn, path, negative, positive, pdfUrl } = this.state;
+
+        return (
+            <div>
                 <p>Attention Weight: {attn}</p>
                 <p>Path: {path}</p>
                 <p>probability of safe: {negative}, unsafe: {positive}</p>
+                {pdfUrl && <embed src={pdfUrl} type="application/pdf" width="100%" height="400px" />}
             </div>
-            {pdfUrl && <embed src={pdfUrl} type="application/pdf" width="100%" height="400px" />}
-        </div>
-    );
+        );
+    }
+
+    render() {
+        const { input } = this.state;
+
+        return (
+            <div>
+                {input ? this.renderOutput() : this.renderInputForm()}
+            </div>
+        );
+    }
 }
 
 export default App;
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
