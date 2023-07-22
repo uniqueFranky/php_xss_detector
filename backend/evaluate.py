@@ -56,7 +56,7 @@ code = args[1]
 rank = int(args[2]) - 1
 file_name = args[3]
 
-attn, path, pred = get_code_paths('model2_96.ckp', code)
+attn, path, pred = get_code_paths('model2_2.ckp', code)
 print(attn)
 print(path)
 neg = pred[0].item()
@@ -65,4 +65,5 @@ print(math.exp(neg) / (math.exp(pos) + math.exp(neg)))
 print(math.exp(pos) / (math.exp(pos) + math.exp(neg)))
 
 get_ast_graph(code, file_name, path)
+
 

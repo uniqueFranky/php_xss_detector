@@ -10,6 +10,7 @@ device = torch.device(device)
 class Model(nn.Module):
     def __init__(self, vocab_size, embedding_size, hidden_size, num_layers, output_size):
         super().__init__()
+        vocab = preprocessing.build_dict()
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         self.embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=embedding_size, padding_idx=vocab['<pad>']).to(device)
@@ -76,6 +77,7 @@ def train(vocab_size, embedding_size, hidden_size, num_layers, output_size, num_
         
 
 def collate_fn(batch):
+    vocab = preprocessing.build_dict()
     max_length = 0
     for row in batch:
         max_length = max(max_length, len(row[0]))
@@ -88,6 +90,42 @@ def collate_fn(batch):
         labels.append(row[1])
     return torch.IntTensor(features), torch.LongTensor(labels)
 
+def rnn_eval():
+    model = Model(vocab_size=167, embedding_size=30, hidden_size=50, num_layers=3, output_size=2)
+    model.load_state_dict(torch.load('model1.ckp', map_location=torch.device(device)))
+    model.eval()
+    rnn_vocab = preprocessing.build_dict()
+    test_datas = dataset.CodeDataSet('./dataset/test_datas', prefix='test_')
+    acc = 0
+    tp = 0
+    fp = 0
+    tn = 0
+    fn = 0
+    for x, y in test_datas:
+        x = torch.IntTensor(x)
+        x = x.unsqueeze(0)
+        pred = model(x).squeeze(0)
+        if pred[0].item() > pred[1].item():
+            if 0 == y:
+                acc += 1
+                tn += 1
+            else:
+                fn += 1
+        if pred[1].item() > pred[0].item():
+            if  1 == y:
+                acc += 1
+                tp += 1
+            else:
+                fp += 1
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    f1 = 2 * precision * recall / (precision + recall)
+    print('on test dataset: acc =', acc / len(test_datas))
+    print('precision:', precision)
+    print('recall:', recall)
+    print('f1:', f1)
+
+
 ast_vocab = preprocessing.build_ast_vocab()
 class ASTModel(nn.Module):
     def __init__(self, vocab_size, embedding_size, hidden_size, output_size):
@@ -97,7 +135,7 @@ class ASTModel(nn.Module):
         self.output_size = output_size
         self.embedding = nn.Embedding(vocab_size, embedding_size, padding_idx=ast_vocab['<pad>']).to(device)
         self.combine = nn.Linear(3 * embedding_size, hidden_size).to(device)
-        self.attention = torch.rand(hidden_size, 1).to(device)
+        self.attention = nn.Parameter(torch.rand(hidden_size, 1).to(device), requires_grad=True)
         self.linear = nn.Linear(hidden_size, int(hidden_size / 2)).to(device)
         self.linear2 = nn.Linear(int(hidden_size / 2), output_size).to(device)
         # torch.nn.init.xavier_uniform_(self.linear.weight)
@@ -182,6 +220,10 @@ def ast_eval(model_path):
 
     test_dataset = dataset.ASTDataSet('./dataset/test_datas', prefix='ast_test_')
     acc = 0
+    tp = 0
+    fp = 0
+    tn = 0
+    fn = 0
     for left, mid, right, label in test_dataset:
         with torch.no_grad():
             left = torch.tensor(left).to(device)
@@ -189,11 +231,25 @@ def ast_eval(model_path):
             right = torch.tensor(right).to(device)
             label = torch.tensor(label).to(device)
             pred = model(left, mid, right).to(device)
-            if pred[0].item() > pred[1].item() and 0 == label.item():
-                acc += 1
-            if pred[1].item() > pred[0].item() and 1 == label.item():
-                acc += 1
+            if pred[0].item() > pred[1].item():
+                if 0 == label.item():
+                    acc += 1
+                    tn += 1
+                else:
+                    fn += 1
+            if pred[1].item() > pred[0].item():
+                if  1 == label.item():
+                    acc += 1
+                    tp += 1
+                else:
+                    fp += 1
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    f1 = 2 * precision * recall / (precision + recall)
     print('on test dataset: acc =', acc / len(test_dataset))
+    print('precision:', precision)
+    print('recall:', recall)
+    print('f1:', f1)
 
 
 def ast_eval_certain_code(model_path, code_path):
@@ -236,7 +292,9 @@ def ast_eval_certain_code(model_path, code_path):
         print(sorted[i].item(), paths[id])
 
 # ast_eval_certain_code('model2_96.ckp', 'dataset/test_datas/unsafe/CWE_79__shell_exec__func_htmlspecialchars__Unsafe_use_untrusted_data-tag_Name.php')
-# ast_eval('model2_96.ckp')
+# ast_eval('model2_2.ckp')
 
 # 有问题：
 # dataset/test_datas/safe/CWE_79__system__CAST-func_settype_int__Use_untrusted_data_script-quoted_Event_Handler.php
+
+# rnn_eval()
